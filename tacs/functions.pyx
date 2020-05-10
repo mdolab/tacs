@@ -50,7 +50,7 @@ cdef class Function:
         if self.ptr:
             self.ptr.decref()
         return
-    
+
 cdef class Compliance(Function):
     def __cinit__(self, Assembler tacs):
         '''
@@ -94,6 +94,9 @@ cdef class KSFailure(Function):
 
     def setParameter(self, double ksparam):
         self.ksptr.setParameter(ksparam)
+
+    def setLoadFactor(self, double loadFactor):
+        self.ksptr.setLoadFactor(loadFactor)
 
 cdef class KSDisplacement(Function):
     cdef TACSKSDisplacement *ksptr
@@ -180,7 +183,7 @@ cdef class ThermalKSFailure(Function):
         self.ptr = self.ksptr
         self.ptr.incref()
         return
-        
+
     def setKSFailureType(self, ftype='discrete'):
         if ftype == 'discrete':
             self.ksptr.setKSFailureType(KS_FAILURE_DISCRETE)
@@ -206,7 +209,7 @@ cdef class HeatFlux(Function):
                                          num_elems)
         self.ptr = self.hptr
         self.ptr.incref()
-        
+
         free(elem_ind)
         free(surf)
         return
@@ -232,7 +235,7 @@ cdef class KSTemperature(Function):
         elif ftype == 'pnorm-continuous':
             self.ksptr.setKSDispType(PNORM_TEMP_CONTINUOUS)
         return
-	
+
 cdef class KSMatTemperature(Function):
     cdef TACSKSMatTemperature *ksptr
     def __cinit__(self, Assembler tacs, double ksWeight, int nmats):
