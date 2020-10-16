@@ -56,6 +56,7 @@ cdef extern from "TACSElement.h":
     enum ElementMatrixType:
         STIFFNESS_MATRIX
         MASS_MATRIX
+        DIAGONAL_MASS_MATRIX
         GEOMETRIC_STIFFNESS_MATRIX
         STIFFNESS_PRODUCT_DERIVATIVE
 

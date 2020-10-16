@@ -195,6 +195,7 @@ enum ElementType { TACS_ELEMENT_NONE,
 // The different element matrix types
 enum ElementMatrixType { STIFFNESS_MATRIX,
                          MASS_MATRIX,
+                         DIAGONAL_MASS_MATRIX,
                          GEOMETRIC_STIFFNESS_MATRIX,
                          STIFFNESS_PRODUCT_DERIVATIVE };
 

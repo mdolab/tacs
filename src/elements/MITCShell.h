@@ -1189,6 +1189,114 @@ void MITCShell<order, tying_order>::getMatType( ElementMatrixType matType,
       }
     }
   }
+  else if (matType == DIAGONAL_MASS_MATRIX){
+    TacsScalar mass_mat[ NUM_VARIABLES*NUM_VARIABLES ];
+    memset(mass_mat, 0, NUM_VARIABLES*NUM_VARIABLES*sizeof(TacsScalar));
+    TacsScalar total_mass = 0.0;
+    for ( int m = 0; m < numGauss; m++ ){
+      for ( int n = 0; n < numGauss; n++ ){
+        // Set the quadrature point within the element
+        double pt[2];
+        pt[0] = gaussPts[n];
+        pt[1] = gaussPts[m];
+
+        // Evaluate the shape functions and the derivative of the
+        // shell surface location along the u/v directions
+        TacsScalar X[3], Xd[9], normal[3];
+        double N[NUM_NODES], Na[NUM_NODES], Nb[NUM_NODES];
+        shell_jacobian(order, X, Xd, N, Na, Nb, pt, Xpts);
+
+        // Compute the normal vector and set it in the final row
+        // of the Xd transformation matrix
+        Tensor::crossProduct3D(normal, &Xd[0], &Xd[3]);
+        Tensor::normalize3D(normal);
+        for ( int i = 0; i < 3; i++ ){
+          Xd[6+i] = normal[i];
+        }
+
+        // Compute the determinant of the jacobian transformation and
+        // scale it by the qudrature weight
+        TacsScalar h = FElibrary::jacobian3d(Xd);
+        h = gaussWts[n]*gaussWts[m]*h;
+
+        // Get the pointwise mass at the quadrature point
+        TacsScalar mass[2];
+        stiff->getPointwiseMass(pt, mass);
+
+        // Add the kinetic energy terms from the displacement
+        TacsScalar Am = mass[0]*h;
+        total_mass += Am;
+        for ( int i = 0; i < NUM_NODES; i++ ){
+          for ( int j = 0; j < NUM_NODES; j++ ){
+            for ( int ii = 0; ii < 3; ii++ ){
+              int row = ii + NUM_DISPS*i;
+              int col = ii + NUM_DISPS*j;
+              mass_mat[col + row*NUM_VARIABLES] += Am*N[i]*N[j];
+            }
+          }
+        }
+
+        // Add the contribution due to the rotational terms
+        TacsScalar Dm = mass[1]*h;
+        TacsScalar D[9];
+        D[0] = Dm*(1.0 - normal[0]*normal[0]);
+        D[1] = -Dm*normal[0]*normal[1];
+        D[2] = -Dm*normal[0]*normal[2];
+
+        D[3] = -Dm*normal[1]*normal[0];
+        D[4] = Dm*(1.0 - normal[1]*normal[1]);
+        D[5] = -Dm*normal[1]*normal[2];
+
+        D[6] = -Dm*normal[2]*normal[0];
+        D[7] = -Dm*normal[2]*normal[1];
+        D[8] = Dm*(1.0 - normal[2]*normal[2]);
+
+        // Add the values to the matrix
+        for ( int i = 0; i < NUM_NODES; i++ ){
+          for ( int j = 0; j < NUM_NODES; j++ ){
+            for ( int ii = 0; ii < 3; ii++ ){
+              int row = 3+ii + NUM_DISPS*i;
+              for ( int jj = 0; jj < 3; jj++ ){
+                int col = 3+jj + NUM_DISPS*j;
+                mass_mat[col + row*NUM_VARIABLES] += D[ii + 3*jj]*N[i]*N[j];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Now make the matrix diagonal
+    memset(mat, 0, NUM_VARIABLES*NUM_VARIABLES*sizeof(TacsScalar));
+
+    // for the hrz method, we need to sum the diagonal entries of the translation degrees
+    // of freedom independently. Then we divide each diagonal entry by the sum. The rotational
+    // entries are scaled as well. This value is then multiplied by the total element mass.
+    // Note that we will end up with the full element mass for each independent direction, since
+    // that is required for each of the acceleration equations to balance.
+    TacsScalar diagonal_sum[NUM_DISPS] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    for ( int i = 0; i < NUM_NODES; i++ ){
+      for ( int j = 0; j < NUM_DISPS; j++ ){
+        diagonal_sum[j] += mass_mat[(NUM_DISPS*i + j)*(NUM_VARIABLES+1)];
+      }
+    }
+
+    // Set the entries in the diagonal mass matrix
+    for ( int i = 0; i < NUM_NODES; i++ ){
+      for ( int j = 0; j < NUM_DISPS; j++ ){
+        int ii = (NUM_DISPS*i + j)*(NUM_VARIABLES+1);
+        if( j < 3 ){
+          printf("Mass: %d %d %d, %f %f %f, %f\n",i,j,ii,mass_mat[ii],diagonal_sum[j],total_mass*mass_mat[ii]/diagonal_sum[j],total_mass);
+          mat[ii] = total_mass*mass_mat[ii]/diagonal_sum[j];
+        }
+        else{
+          // Use the translational sum on the rotational dofs
+          printf("Mass rot: %d %d %d, %f %f %f, %f\n",i,j,ii,mass_mat[ii],diagonal_sum[j-3],total_mass*mass_mat[ii]/diagonal_sum[j-3],total_mass);
+          //mat[ii] = total_mass*mass_mat[ii]/diagonal_sum[j-3];
+        }
+      }
+    }
+  }
   else if (matType == GEOMETRIC_STIFFNESS_MATRIX &&
            type == LINEAR){
     // Geometric data
@@ -1303,7 +1411,7 @@ void MITCShell<order, tying_order>::getMatType( ElementMatrixType matType,
 template <int order, int tying_order>
 void MITCShell<order, tying_order>::addAdjResProduct( double time,
                                                       double scale,
-                                                      TacsScalar fdvSens[], 
+                                                      TacsScalar fdvSens[],
                                                       int dvLen,
                                                       const TacsScalar psi[],
                                                       const TacsScalar Xpts[],
