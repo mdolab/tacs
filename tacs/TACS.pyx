@@ -1760,12 +1760,15 @@ cdef class MeshLoader:
 
     def createTACS(self, int varsPerNode,
                    OrderingType order_type=NATURAL_ORDER,
-                   MatrixOrderingType mat_type=DIRECT_SCHUR):
+                   MatrixOrderingType mat_type=DIRECT_SCHUR,
+                   int ignore_bcs=0):
         '''
         Create a distribtued version of TACS
         '''
         return _init_Assembler(self.ptr.createTACS(varsPerNode,
-                                                   order_type, mat_type))
+                                                   order_type,
+                                                   mat_type,
+                                                   ignore_bcs))
 
     def addAuxElement(self, AuxElements aux, int comp_num, Element elem):
         '''

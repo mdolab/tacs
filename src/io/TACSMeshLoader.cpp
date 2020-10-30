@@ -1618,7 +1618,8 @@ TACSAssembler *TACSMeshLoader::createTACS( int vars_per_node,
                                            TACSAssembler::OrderingType 
                                            order_type, 
                                            TACSAssembler::MatrixOrderingType 
-                                           mat_type ){
+                                           mat_type,
+                                           int ignore_bcs){
   // Set the root processor
   const int root = 0;
 
@@ -1637,8 +1638,10 @@ TACSAssembler *TACSMeshLoader::createTACS( int vars_per_node,
                                    elem_component);
     
     // Set the boundary conditions
+    if (!ignore_bcs){
     creator->setBoundaryConditions(num_bcs, bc_nodes, 
                                    bc_ptr, bc_vars, bc_vals);
+    }
     
     // Set the nodal locations
     creator->setNodes(Xpts);

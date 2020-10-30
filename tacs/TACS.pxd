@@ -541,7 +541,8 @@ cdef extern from "TACSMeshLoader.h":
         int getNumElements()
         TACSAssembler*createTACS(int vars_per_node,
                                   OrderingType order_type,
-                                  MatrixOrderingType mat_type)
+                                  MatrixOrderingType mat_type,
+                                  int ignore_bcs)
         void addAuxElement(TACSAuxElements *aux, int comp_num,
 	                   TACSElement *_element)
 

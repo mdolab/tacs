@@ -86,7 +86,8 @@ class TACSMeshLoader : public TACSObject {
                              TACSAssembler::OrderingType order_type = 
                              TACSAssembler::NATURAL_ORDER,
                              TACSAssembler::MatrixOrderingType mat_type = 
-                             TACSAssembler::DIRECT_SCHUR);
+                             TACSAssembler::DIRECT_SCHUR,
+                             int ignore_bcs = 0);
 
   // Set the domain of a structural function with component numbers
   // --------------------------------------------------------------
