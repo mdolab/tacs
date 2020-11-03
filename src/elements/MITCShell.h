@@ -1266,10 +1266,8 @@ void MITCShell<order, tying_order>::getMatType( ElementMatrixType matType,
       }
     }
 
-    // Now make the matrix diagonal
-    memset(mat, 0, NUM_VARIABLES*NUM_VARIABLES*sizeof(TacsScalar));
 
-    // for the hrz method, we need to sum the diagonal entries of the translation degrees
+    // For the HRZ method, we need to sum the diagonal entries of the translation degrees
     // of freedom independently. Then we divide each diagonal entry by the sum. The rotational
     // entries are scaled as well. This value is then multiplied by the total element mass.
     // Note that we will end up with the full element mass for each independent direction, since
@@ -1286,12 +1284,12 @@ void MITCShell<order, tying_order>::getMatType( ElementMatrixType matType,
       for ( int j = 0; j < NUM_DISPS; j++ ){
         int ii = (NUM_DISPS*i + j)*(NUM_VARIABLES+1);
         if( j < 3 ){
-          printf("Mass: %d %d %d, %f %f %f, %f\n",i,j,ii,mass_mat[ii],diagonal_sum[j],total_mass*mass_mat[ii]/diagonal_sum[j],total_mass);
+          //printf("Mass: %d %d %d, %f %f %f, %f\n",i,j,ii,mass_mat[ii],diagonal_sum[j],total_mass*mass_mat[ii]/diagonal_sum[j],total_mass);
           mat[ii] = total_mass*mass_mat[ii]/diagonal_sum[j];
         }
         else{
           // Use the translational sum on the rotational dofs
-          printf("Mass rot: %d %d %d, %f %f %f, %f\n",i,j,ii,mass_mat[ii],diagonal_sum[j-3],total_mass*mass_mat[ii]/diagonal_sum[j-3],total_mass);
+          //printf("Mass rot: %d %d %d, %f %f %f, %f\n",i,j,ii,mass_mat[ii],diagonal_sum[j-3],total_mass*mass_mat[ii]/diagonal_sum[j-3],total_mass);
           //mat[ii] = total_mass*mass_mat[ii]/diagonal_sum[j-3];
         }
       }
