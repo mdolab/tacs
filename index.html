@@ -1,150 +1,164 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="python" data-content_root="./">
   <head>
-    <meta charset="utf-8">
-    
-    <title>Welcome to TACS’s documentation! &mdash; TACS  documentation</title>
-    
-    <link rel="stylesheet" type="text/css" href="_static/css/spc-bootstrap.css">
-    <link rel="stylesheet" type="text/css" href="_static/css/spc-extend.css">
-    <link rel="stylesheet" href="_static/scipy.css" type="text/css" >
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" >
-    <link rel="stylesheet" href="_static/custom.css" type="text/css" >
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/javascript" src="_static/js/copybutton.js"></script>
-    <link rel="index" title="Index" href="genindex.html" >
-    <link rel="search" title="Search" href="search.html" >
-    <link rel="top" title="TACS  documentation" href="#" >
-    <link rel="next" title="Installing TACS" href="install.html" > 
-  </head>
-  <body>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <div class="container">
-    <div class="header">
-    </div>
-  </div>
+    <title>TACS Overview &#8212; TACS  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css?v=87629129" />
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <script src="_static/documentation_options.js?v=d048f138"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Install" href="install.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Install"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">TACS  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TACS Overview</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tacs-overview">
+<h1>TACS Overview<a class="headerlink" href="#tacs-overview" title="Link to this heading">¶</a></h1>
+<p>The Toolkit for the Analysis of Composite Structures (TACS) is a parallel finite-element code for analysis and gradient-based design of advanced structures. Originally, TACS was primarily designed as a tool for the analysis of shell structures, such as wing-boxes. More recently it has been extended to perform topology optimization of large three-dimensional structures using gradient-based methods.</p>
+<p>TACS has been under continuous development since 2010 by the <a class="reference external" href="http://gkennedy.gatech.edu">Structural and Multidisciplinary Design Optimization group at Georgia Tech</a> and by the <a class="reference external" href="http://mdolab.engin.umich.edu/">Multidisciplinary Design Optimization Lab at the University of Michigan</a>.</p>
+</section>
+<section id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#from-anaconda">From Anaconda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#from-source">From source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html#installation-tips-for-common-hpc-systems">Installation tips for common HPC systems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#nasa-hecc">NASA HECC</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="interfaces.html">Interfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core/TACS.html">Direct</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytacs/pytacs.html">pyTACS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mphys/mphys.html">MPhys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="caps2tacs/caps2tacs.html">caps2tacs</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/Example-Plate.html">Plate under static load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/Example-Transient_Battery.html">Battery pack during thermal runaway</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/Example-Beam_Optimization.html">Beam optimization with MPhys</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/Example-Composite_Optimization.html">Composite plate optimization with MPhys</a></li>
+</ul>
+</div>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="theory/theory.html">Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="theory/shell_element.html">Beam and shell elements in TACS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/shell_element.html#director-implementation">Director implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/shell_element.html#beam-element-implementation">Beam element implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/shell_element.html#shell-element-implementation">Shell element implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core/core.html">Core modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core/constitutive.html">constitutive module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core/elements.html">elements module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core/functions.html">functions module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
 
 
-    <div class="container">
-      <div class="main">
-        
-	<div class="row-fluid">
-	  <div class="span12">
-	    <div class="spc-navbar">
-              
-    <ul class="nav nav-pills pull-left">
-        <li class="active"><a href="["></a></li>
-        <li class="active"><a href="]"></a></li>
-	 
-    </ul>
-              
-              
-    <ul class="nav nav-pills pull-right">
-      <li class="active">
-        <a href="genindex.html" title="General Index"
-           accesskey="I">index</a>
-      </li>
-      <li class="active">
-        <a href="py-modindex.html" title="Python Module Index"
-           >modules</a>
-      </li>
-      <li class="active">
-        <a href="install.html" title="Installing TACS"
-           accesskey="N">next</a>
-      </li>
-    </ul>
-              
-	    </div>
-	  </div>
-	</div>
-        
-
-	<div class="row-fluid">
-      <div class="spc-rightsidebar span3">
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="#">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Welcome to TACS’s documentation!</a></li>
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TACS Overview</a></li>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
-  <h4>Next topic</h4>
-  <p class="topless"><a href="install.html"
-                        title="next chapter">Installing TACS</a></p>
-  <h3>This Page</h3>
-  <div>
-    <a href="_sources/index.rst.txt"
-       rel="nofollow">Show Source</a>
   </div>
-<div class="this-page-menu">
-  <a href="/scipy/docs/scipy-docs/index.rst.rst">Edit page</a>
-</div>
-
-        </div>
-      </div>
-          <div class="span9">
-            
-        <div class="bodywrapper">
-          <div class="body" id="spc-section-body">
-            
-  <div class="section" id="welcome-to-tacs-s-documentation">
-<h1>Welcome to TACS’s documentation!<a class="headerlink" href="#welcome-to-tacs-s-documentation" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installing TACS</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#steps-to-compile">Steps to Compile</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="interface.html">TACS Interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="interface.html#workflow">Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interface.html#functions">Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interface.html#assembler">Assembler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interface.html#meshloader">MeshLoader</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interface.html#creator">Creator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interface.html#frequencyanalysis">FrequencyAnalysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interface.html#integrator">Integrator</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Example-CRM_Optimization.html">Example: CRM Optimization</a></li>
-</ul>
-</div>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
-</ul>
-</div>
-
-
-          </div>
-        </div>
-          </div>
-        </div>
-      </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="install.html"
+                          title="next chapter">Install</a></p>
+  </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
     </div>
-
-    <div class="container container-navbar-bottom">
-      <div class="spc-navbar">
-        
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
       </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Install"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">TACS  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TACS Overview</a></li> 
+      </ul>
     </div>
  <script type="text/javascript">
     $(document).ready(function() {
