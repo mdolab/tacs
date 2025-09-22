@@ -253,7 +253,7 @@ void TacsExtendArray(int **_array, int oldlen, int newlen) {
   int *oldarray = *_array;
   int *newarray = new int[newlen];
   memcpy(newarray, oldarray, oldlen * sizeof(int));
-  delete[] * _array;
+  delete[] *_array;
   *_array = newarray;
 }
 
@@ -264,7 +264,7 @@ void TacsExtendArray(TacsScalar **_array, int oldlen, int newlen) {
   TacsScalar *oldarray = *_array;
   TacsScalar *newarray = new TacsScalar[newlen];
   memcpy(newarray, oldarray, oldlen * sizeof(TacsScalar));
-  delete[] * _array;
+  delete[] *_array;
   *_array = newarray;
 }
 
