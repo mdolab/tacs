@@ -117,6 +117,11 @@ class StiffenerLengthConstraint(TACSConstraint):
             nComps = self.meshLoader.getNumComponents()
             compIDs = list(range(nComps))
 
+        if lower is None:
+            lower = 0.0
+        if upper is None:
+            upper = 0.0
+
         constrObj = self._createConstraint(dvIndex, compIDs, lower, upper)
         if constrObj.nCon > 0:
             self.constraintList[conName] = constrObj
@@ -175,9 +180,13 @@ class StiffenerLengthConstraint(TACSConstraint):
                 localDVNum = self.globalToLocalDVNums[globalDVNum]
                 lengthDVs[conCount] = localDVNum
                 lengthDVsOwnerProc[conCount] = self.comm.rank
-            compConn = self.meshLoader.getConnectivityForComp(comp, nastranOrdering=False)
+            compConn = self.meshLoader.getConnectivityForComp(
+                comp, nastranOrdering=False
+            )
             endNodeGlobalIDs = self._findChainEnds(compConn)
-            endNodeLocalIDs = self.meshLoader.getLocalNodeIDsFromGlobal(endNodeGlobalIDs, nastranOrdering=False)
+            endNodeLocalIDs = self.meshLoader.getLocalNodeIDsFromGlobal(
+                endNodeGlobalIDs, nastranOrdering=False
+            )
             for end_i, nodeID in enumerate(endNodeLocalIDs):
                 if nodeID >= 0:
                     allEndNodeLocalIDs[conCount, end_i] = nodeID
@@ -186,11 +195,17 @@ class StiffenerLengthConstraint(TACSConstraint):
         allEndNodeLocalIDs = self.comm.allreduce(allEndNodeLocalIDs)
         allEndNodeOwnerProc = self.comm.allreduce(allEndNodeOwnerProc)
 
-
         nLocalDVs = self.getNumDesignVars()
 
         return SparseLengthConstraint(
-            self.comm, lengthDVs, lengthDVsOwnerProc, allEndNodeLocalIDs, allEndNodeOwnerProc, nLocalDVs, lbound, ubound
+            self.comm,
+            lengthDVs,
+            lengthDVsOwnerProc,
+            allEndNodeLocalIDs,
+            allEndNodeOwnerProc,
+            nLocalDVs,
+            lbound,
+            ubound,
         )
 
     def _findChainEnds(self, connectivity):
@@ -238,7 +253,9 @@ class StiffenerLengthConstraint(TACSConstraint):
         ends = [node for node, deg in degrees.items() if deg == 1]
 
         if len(ends) != 2:
-            raise ValueError(f"Body does not have exactly two ends (found {len(ends)} ends).")
+            raise ValueError(
+                f"Body does not have exactly two ends (found {len(ends)} ends)."
+            )
 
         return tuple(ends)
 
@@ -275,7 +292,9 @@ class StiffenerLengthConstraint(TACSConstraint):
         # Loop through each requested constraint set
         for conName in evalCons:
             key = f"{self.name}_{conName}"
-            funcs[key] = self.constraintList[conName].evalCon(self.x.getArray(), self.Xpts.getArray())
+            funcs[key] = self.constraintList[conName].evalCon(
+                self.x.getArray(), self.Xpts.getArray()
+            )
 
     def evalConstraintsSens(self, funcsSens, evalCons=None):
         """This is the main routine for returning useful (sensitivity)
@@ -320,12 +339,21 @@ class StiffenerLengthConstraint(TACSConstraint):
             funcsSens[key] = {self.varName: xSens, self.coordName: XptSens}
 
 
-
 # Simple class for handling sparse volume constraints in parallel
 class SparseLengthConstraint(object):
     dtype = TACSConstraint.dtype
 
-    def __init__(self, comm, lengthLocalDVNums, lengthDVsOwnerProc, allEndNodeLocalIDs, allEndNodeOwnerProc, nLocalDVs, lbound, ubound):
+    def __init__(
+        self,
+        comm,
+        lengthLocalDVNums,
+        lengthDVsOwnerProc,
+        allEndNodeLocalIDs,
+        allEndNodeOwnerProc,
+        nLocalDVs,
+        lbound,
+        ubound,
+    ):
         # Number of constraints
         self.nCon = len(lengthLocalDVNums)
         self.lengthLocalDVNums = lengthLocalDVNums
@@ -345,7 +373,7 @@ class SparseLengthConstraint(object):
         if isinstance(ubound, np.ndarray) and len(ubound) == self.nCon:
             self.ubound = ubound.astype(self.dtype)
         elif isinstance(ubound, float) or isinstance(ubound, complex):
-            self.ub = np.array([ubound] * self.nCon, dtype=self.dtype)
+            self.ubound = np.array([ubound] * self.nCon, dtype=self.dtype)
 
     def evalCon(self, x, Xpts):
         Lexact = self._computeExactLength(Xpts)
@@ -359,9 +387,13 @@ class SparseLengthConstraint(object):
             for end_j in range(2):
                 if self.allEndNodeOwnerProc[con_i, end_j] == self.comm.rank:
                     localNodeID = self.allEndNodeLocalIDs[con_i, end_j]
-                    stiffenerEndLocations[con_i, end_j, :] = Xpts[3*localNodeID:3*localNodeID+3]
+                    stiffenerEndLocations[con_i, end_j, :] = Xpts[
+                        3 * localNodeID : 3 * localNodeID + 3
+                    ]
         stiffenerEndLocations = self.comm.allreduce(stiffenerEndLocations)
-        Lexact = np.linalg.norm(stiffenerEndLocations[:, 1, :] - stiffenerEndLocations[:, 0, :], axis=1)
+        Lexact = np.linalg.norm(
+            stiffenerEndLocations[:, 1, :] - stiffenerEndLocations[:, 0, :], axis=1
+        )
         return Lexact
 
     def _getDVLengths(self, x):
@@ -388,12 +420,14 @@ class SparseLengthConstraint(object):
             for end_j in range(2):
                 if self.allEndNodeOwnerProc[con_i, end_j] == self.comm.rank:
                     localNodeID = self.allEndNodeLocalIDs[con_i, end_j]
-                    val = Xpts[3*localNodeID: 3*localNodeID+3] / Lexact
+                    val = Xpts[3 * localNodeID : 3 * localNodeID + 3] / Lexact[con_i]
                     if end_j == 0:
                         val *= -1
                     coordJacVals.extend(val)
                     coordJacRows.extend([con_i, con_i, con_i])
-                    coordJacCols.extend(np.arange(3*localNodeID,3*localNodeID+3, dtype=int))
+                    coordJacCols.extend(
+                        np.arange(3 * localNodeID, 3 * localNodeID + 3, dtype=int)
+                    )
         xSens = sp.sparse.csr_matrix(
             (dvJacVals, (dvJacRows, dvJacCols)),
             (self.nCon, self.nLocalDVs),

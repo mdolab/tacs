@@ -448,6 +448,7 @@ TacsScalar TACSIsoRectangleBeamConstitutive::evalFailureStrainSens(
   TacsScalar z_lim[] = {-(0.5 + w_offset) * width, (0.5 - w_offset) * width};
 
   memset(sens, 0, 6 * sizeof(TacsScalar));
+  memset(fail_checks_sens, 0, 6 * 6 * sizeof(TacsScalar));
 
   int count = 0;
   for (int i = 0; i < 2; i++) {
@@ -669,6 +670,8 @@ TacsScalar TACSIsoRectangleBeamConstitutive::evalDesignFieldValue(
     return width;
   } else if (index == 1) {
     return thickness;
+  } else if (index == 2) {
+    return buckle_length;
   }
   return 0.0;
 }
