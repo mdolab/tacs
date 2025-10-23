@@ -535,6 +535,11 @@ cdef class OrthotropicPly:
     def setUseModifiedTsaiWu(self, bool useModifiedTsaiWu):
         """
         Set to use the modified Tsai-Wu failure criterion.
+
+        Parameters
+        ----------
+        useModifiedTsaiWu : bool
+            If true, use the modified Tsai-Wu criterion. Otherwise, use the standard Tsai-Wu criterion.
         """
         self.ptr.setUseModifiedTsaiWu(useModifiedTsaiWu)
 
@@ -1953,7 +1958,56 @@ cdef class SmearedCompositeShellConstitutive(ShellConstitutive):
                                                     z0=np.real(z0))
         return prop
 
-cdef class LamParamShellConstitutive(ShellConstitutive):
+cdef class LamParamSmearedShellConstitutive(ShellConstitutive):
+    """
+    This class implements a lamination parameter based parametrization of the shell stiffness and strength properties.
+    The class is restricted to symmetric balanced laminates.
+    The in-plane properties are parametrized in terms of laminate fractions at the angles 0, +/-45 and 90 degrees. The thickness is treated as a continuous design variable.
+    Additional lamination parameters W1 and W3 are used for the bending stiffness.
+
+    Parameters
+    ----------
+    ply : OrthotropicPly
+        The orthotropic ply object defining the material properties.
+    t : float, optional
+        Shell thickness. Default is 1.0.
+    t_num : int, optional
+        Design variable number for thickness. Default is -1 (inactive).
+    min_t : float, optional
+        Minimum allowable thickness. Default is 1.0.
+    max_t : float, optional
+        Maximum allowable thickness. Default is 1.0.
+    f0 : float, optional
+        Fraction of 0-degree plies. Default is 0.25.
+    f45 : float, optional
+        Fraction of 45-degree plies. Default is 0.5.
+    f90 : float, optional
+        Fraction of 90-degree plies. Default is 0.25.
+    f0_num : int, optional
+        Design variable number for f0. Default is -1 (inactive).
+    f45_num : int, optional
+        Design variable number for f45. Default is -1 (inactive).
+    f90_num : int, optional
+        Design variable number for f90. Default is -1 (inactive).
+    min_f0 : float, optional
+        Minimum allowable fraction for f0. Default is 0.125.
+    min_f45 : float, optional
+        Minimum allowable fraction for f45. Default is 0.125.
+    min_f90 : float, optional
+        Minimum allowable fraction for f90. Default is 0.125.
+    W1 : float, optional
+        First lamination parameter. Default is 0.0.
+    W3 : float, optional
+        Third lamination parameter. Default is 0.0.
+    W1_num : int, optional
+        Design variable number for W1. Default is -1 (inactive).
+    W3_num : int, optional
+        Design variable number for W3. Default is -3 (inactive).
+    ksWeight : float, optional
+        Weight for the KS aggregation function. Default is 30.0.
+    epsilon : float, optional
+        Regularization parameter. Default is 0.0.
+    """
     def __cinit__(self, OrthotropicPly ply, **kwargs):
         cdef TacsScalar t = 1.0
         cdef int t_num = -1
@@ -2018,15 +2072,39 @@ cdef class LamParamShellConstitutive(ShellConstitutive):
         if 'epsilon' in kwargs:
             epsilon = kwargs['epsilon']
 
-        self.cptr = new TACSLamParamShellConstitutive(ply.ptr, t, t_num, min_t, max_t,
+        self.cptr = new TACSLamParamSmearedShellConstitutive(ply.ptr, t, t_num, min_t, max_t,
                                                       f0, f45, f90, f0_num, f45_num, f90_num,
                                                       min_f0, min_f45, min_f90,
                                                       W1, W3, W1_num, W3_num, ksWeight, epsilon)
         self.ptr = self.cptr
         self.ptr.incref()
 
-cdef class LamParamAllShellConstitutive(ShellConstitutive):
-    cdef TACSLamParamAllShellConstitutive* lam_cptr
+cdef class LamParamFullShellConstitutive(ShellConstitutive):
+    """
+    This constitutive class implements lamination parameter based parametrization of the shell stiffness and strength properties.
+    There are six lamination parameters that define a symmetric balanced laminate.
+    These must be combined with appropriate feasibility domain for the constraint on the values of the lamination parameters.
+    The failure calculations are based on the maximum failure criteria taken from a set of set ply angles.
+
+    Parameters
+    ----------
+    ply : OrthotropicPly
+        The orthotropic ply object containing material properties.
+    t : float or complex
+        The thickness of the ply.
+    tNum : int
+        The thickness design variable number.
+    tlb : float or complex
+        The lower bound for the thickness.
+    tub : float or complex
+        The upper bound for the thickness.
+    lpNums : np.ndarray[int]
+        Array of laminate parameter design variable numbers.
+    ksWeight : float or complex, optional
+        The KS aggregation weight for constraints (default is 30.0).
+    """
+
+    cdef TACSLamParamFullShellConstitutive* lam_cptr
     def __cinit__(
             self,
             OrthotropicPly ply,
@@ -2038,7 +2116,7 @@ cdef class LamParamAllShellConstitutive(ShellConstitutive):
             TacsScalar ksWeight = 30.0
             ):
 
-        self.lam_cptr = new TACSLamParamAllShellConstitutive(
+        self.lam_cptr = new TACSLamParamFullShellConstitutive(
             ply.ptr,
             t,
             tNum,
@@ -2051,9 +2129,25 @@ cdef class LamParamAllShellConstitutive(ShellConstitutive):
         self.ptr.incref()
 
     def setLaminationParameters(self, np.ndarray[TacsScalar, ndim=1, mode="c"] lp):
+        """
+        Set the lamination parameters for the constitutive object.
+
+        Parameters
+        ----------
+        lp : np.ndarray[float or complex]
+            A 1-dimensional numpy array containing the lamination parameters.
+        """
         self.lam_cptr.setLaminationParameters(<TacsScalar*>lp.data)
 
     def setNumFailAngles(self, int numFailAngles):
+        """
+        Set the number of failure angles for the constitutive model.
+
+        Parameters
+        ----------
+        numFailAngles : int
+            The number of failure angles to be used in the failure analysis.
+        """
         self.lam_cptr.setNumFailAngles(numFailAngles)
 
 cdef class BasicBeamConstitutive(BeamConstitutive):

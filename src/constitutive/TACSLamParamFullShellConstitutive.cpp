@@ -16,19 +16,16 @@
   http://www.apache.org/licenses/LICENSE-2.0
 */
 
-#include "TACSLamParamAllShellConstitutive.h"
+#include "TACSLamParamFullShellConstitutive.h"
 
 #include "TACSElementAlgebra.h"
 
-const char* TACSLamParamAllShellConstitutive::constName = "TACSLamParamAllShellConstitutive";
+const char *TACSLamParamFullShellConstitutive::constName =
+    "TACSLamParamFullShellConstitutive";
 
-TACSLamParamAllShellConstitutive::TACSLamParamAllShellConstitutive(TACSOrthotropicPly* _orthoPly,
-                                 TacsScalar _t,
-                                 int _tNum,
-                                 TacsScalar _tlb,
-                                 TacsScalar _tub,
-                                 int _lpNums[],
-                                 TacsScalar _ksWeight) {
+TACSLamParamFullShellConstitutive::TACSLamParamFullShellConstitutive(
+    TACSOrthotropicPly *_orthoPly, TacsScalar _t, int _tNum, TacsScalar _tlb,
+    TacsScalar _tub, int _lpNums[], TacsScalar _ksWeight) {
   orthoPly = _orthoPly;
   orthoPly->incref();
 
@@ -73,24 +70,27 @@ TACSLamParamAllShellConstitutive::TACSLamParamAllShellConstitutive(TACSOrthotrop
   U7 = (Q44 - Q55) / 2.0;
 }
 
-TACSLamParamAllShellConstitutive::~TACSLamParamAllShellConstitutive() { orthoPly->decref(); }
+TACSLamParamFullShellConstitutive::~TACSLamParamFullShellConstitutive() {
+  orthoPly->decref();
+}
 
 // Set the lamination parameter values directly
-void TACSLamParamAllShellConstitutive::setLaminationParameters(TacsScalar _lp[]) {
+void TACSLamParamFullShellConstitutive::setLaminationParameters(
+    TacsScalar _lp[]) {
   for (int k = 0; k < 6; k++) {
     lp[k] = _lp[k];
   }
 }
 
 // Set the number of failure angles to set
-void TACSLamParamAllShellConstitutive::setNumFailAngles(int _numFailAngles) {
+void TACSLamParamFullShellConstitutive::setNumFailAngles(int _numFailAngles) {
   if (_numFailAngles >= 4 && _numFailAngles <= MAX_NUM_FAIL_ANGLES) {
     numFailAngles = _numFailAngles;
   }
 }
 
-
-int TACSLamParamAllShellConstitutive::getDesignVarNums(int elemIndex, int dvLen, int dvNums[]) {
+int TACSLamParamFullShellConstitutive::getDesignVarNums(int elemIndex, int dvLen,
+                                                       int dvNums[]) {
   int index = 0;
   if (dvNums && dvLen >= numDesignVars) {
     if (tNum >= 0) {
@@ -105,10 +105,11 @@ int TACSLamParamAllShellConstitutive::getDesignVarNums(int elemIndex, int dvLen,
       }
     }
   }
-  return numDesignVars; // NOTE: Could probably return index instead or compute index automatically in constructor
+  return numDesignVars;
 }
 
-int TACSLamParamAllShellConstitutive::setDesignVars(int elemIndex, int dvLen, const TacsScalar dvs[]) {
+int TACSLamParamFullShellConstitutive::setDesignVars(int elemIndex, int dvLen,
+                                                    const TacsScalar dvs[]) {
   int index = 0;
   if (tNum >= 0) {
     t = dvs[index];
@@ -123,7 +124,8 @@ int TACSLamParamAllShellConstitutive::setDesignVars(int elemIndex, int dvLen, co
   return numDesignVars;
 }
 
-int TACSLamParamAllShellConstitutive::getDesignVars(int elemIndex, int dvLen, TacsScalar dvs[]) {
+int TACSLamParamFullShellConstitutive::getDesignVars(int elemIndex, int dvLen,
+                                                    TacsScalar dvs[]) {
   int index = 0;
   if (tNum >= 0) {
     dvs[index] = t;
@@ -138,11 +140,14 @@ int TACSLamParamAllShellConstitutive::getDesignVars(int elemIndex, int dvLen, Ta
   return numDesignVars;
 }
 
-int TACSLamParamAllShellConstitutive::getDesignVarRange(int elemIndex, int dvLen, TacsScalar lb[], TacsScalar ub[]) {
+int TACSLamParamFullShellConstitutive::getDesignVarRange(int elemIndex,
+                                                        int dvLen,
+                                                        TacsScalar lb[],
+                                                        TacsScalar ub[]) {
   int index = 0;
   if (tNum >= 0) {
-    lb[tNum] = tlb;
-    ub[tNum] = tub;
+    lb[index] = tlb;
+    ub[index] = tub;
     index++;
   }
   for (int k = 0; k < 6; k++) {
@@ -170,7 +175,7 @@ int TACSLamParamAllShellConstitutive::getDesignVarRange(int elemIndex, int dvLen
   a[2]*(a[1]*a[4] - a[2]*a[3])
 */
 
-int TACSLamParamAllShellConstitutive::checkDeterminant(const TacsScalar a[]) {
+int TACSLamParamFullShellConstitutive::checkDeterminant(const TacsScalar a[]) {
   TacsScalar d =
       (a[0] * (a[3] * a[5] - a[4] * a[4]) - a[1] * (a[1] * a[5] - a[2] * a[4]) +
        a[2] * (a[1] * a[4] - a[2] * a[3]));
@@ -193,14 +198,14 @@ int TACSLamParamAllShellConstitutive::checkDeterminant(const TacsScalar a[]) {
 }
 
 // Evaluate the mass per unit area
-TacsScalar TACSLamParamAllShellConstitutive::evalDensity(int elemIndex,
-                                                      const double pt[],
-                                                      const TacsScalar X[]) {
+TacsScalar TACSLamParamFullShellConstitutive::evalDensity(int elemIndex,
+                                                         const double pt[],
+                                                         const TacsScalar X[]) {
   return t * orthoPly->getDensity();
 }
 
 // Add the derivative of the density w.r.t. the design variables
-void TACSLamParamAllShellConstitutive::addDensityDVSens(
+void TACSLamParamFullShellConstitutive::addDensityDVSens(
     int elemIndex, TacsScalar scale, const double pt[], const TacsScalar X[],
     int dvLen, TacsScalar dfdx[]) {
   if (tNum >= 0) {
@@ -209,10 +214,10 @@ void TACSLamParamAllShellConstitutive::addDensityDVSens(
 }
 
 // Evaluate the mass moments
-void TACSLamParamAllShellConstitutive::evalMassMoments(int elemIndex,
-                                                    const double pt[],
-                                                    const TacsScalar X[],
-                                                    TacsScalar moments[]) {
+void TACSLamParamFullShellConstitutive::evalMassMoments(int elemIndex,
+                                                       const double pt[],
+                                                       const TacsScalar X[],
+                                                       TacsScalar moments[]) {
   TacsScalar rho = orthoPly->getDensity();
   moments[0] = rho * t;
   moments[1] = 0.0;
@@ -220,7 +225,7 @@ void TACSLamParamAllShellConstitutive::evalMassMoments(int elemIndex,
 }
 
 // Add the sensitivity of the mass moments
-void TACSLamParamAllShellConstitutive::addMassMomentsDVSens(
+void TACSLamParamFullShellConstitutive::addMassMomentsDVSens(
     int elemIndex, const double pt[], const TacsScalar X[],
     const TacsScalar scale[], int dvLen, TacsScalar dfdx[]) {
   if (tNum >= 0) {
@@ -230,15 +235,16 @@ void TACSLamParamAllShellConstitutive::addMassMomentsDVSens(
 }
 
 // Evaluate the specific heat
-TacsScalar TACSLamParamAllShellConstitutive::evalSpecificHeat(
+TacsScalar TACSLamParamFullShellConstitutive::evalSpecificHeat(
     int elemIndex, const double pt[], const TacsScalar X[]) {
   return 0.0;
 }
 
-void TACSLamParamAllShellConstitutive::getStiffness(TacsScalar A[], TacsScalar B[],
-                                                 TacsScalar D[],
-                                                 TacsScalar As[],
-                                                 TacsScalar *drill) {
+void TACSLamParamFullShellConstitutive::getStiffness(TacsScalar A[],
+                                                    TacsScalar B[],
+                                                    TacsScalar D[],
+                                                    TacsScalar As[],
+                                                    TacsScalar *drill) {
   // Calculate the in-plane stiffness using the lamination
   // parameters
 
@@ -274,29 +280,35 @@ void TACSLamParamAllShellConstitutive::getStiffness(TacsScalar A[], TacsScalar B
   D[5] = p * (U5 - U3 * W3);
 
   if (!checkDeterminant(A)) {
-    fprintf(stderr, "TACSLamParamAllShellConstitutive: Error, A has negative eigenvalues\n");
+    fprintf(stderr,
+            "TACSLamParamFullShellConstitutive: Error, A has negative "
+            "eigenvalues\n");
   }
 
   if (!checkDeterminant(D)) {
-    fprintf(stderr, "TACSLamParamAllShellConstitutive: Error, D has negative eigenvalues\n");
-    fprintf(stderr, "W = [%12.6e, %12.6e, %12.6e %12.6e]\n", TacsRealPart(W1), TacsRealPart(W2), TacsRealPart(W3), TacsRealPart(W4));
+    fprintf(stderr,
+            "TACSLamParamFullShellConstitutive: Error, D has negative "
+            "eigenvalues\n");
+    fprintf(stderr, "W = [%12.6e, %12.6e, %12.6e %12.6e]\n", TacsRealPart(W1),
+            TacsRealPart(W2), TacsRealPart(W3), TacsRealPart(W4));
   }
 
   *drill = 0.5 * DRILLING_REGULARIZATION * (As[0] + As[2]);
 }
 
 // Evaluate the stress
-void TACSLamParamAllShellConstitutive::evalStress(int elemIndex, const double pt[],
-                                               const TacsScalar X[],
-                                               const TacsScalar e[],
-                                               TacsScalar s[]) {
+void TACSLamParamFullShellConstitutive::evalStress(int elemIndex,
+                                                  const double pt[],
+                                                  const TacsScalar X[],
+                                                  const TacsScalar e[],
+                                                  TacsScalar s[]) {
   TacsScalar A[6], B[6], D[6], As[3], drill;
   getStiffness(A, B, D, As, &drill);
   TACSShellConstitutive::computeStress(A, B, D, As, drill, e, s);
 }
 
 // Evaluate the derivative of the product of the stress with a vector psi.
-void TACSLamParamAllShellConstitutive::addStressDVSens(
+void TACSLamParamFullShellConstitutive::addStressDVSens(
     int elemIndex, TacsScalar scale, const double pt[], const TacsScalar X[],
     const TacsScalar e[], const TacsScalar psi[], int dvLen,
     TacsScalar dfdx[]) {
@@ -398,10 +410,8 @@ void TACSLamParamAllShellConstitutive::addStressDVSens(
 }
 
 // Evaluate the tangent stiffness
-void TACSLamParamAllShellConstitutive::evalTangentStiffness(int elemIndex,
-                                                         const double pt[],
-                                                         const TacsScalar X[],
-                                                         TacsScalar C[]) {
+void TACSLamParamFullShellConstitutive::evalTangentStiffness(
+    int elemIndex, const double pt[], const TacsScalar X[], TacsScalar C[]) {
   TacsScalar *A = &C[0];
   TacsScalar *B = &C[6];
   TacsScalar *D = &C[12];
@@ -409,7 +419,6 @@ void TACSLamParamAllShellConstitutive::evalTangentStiffness(int elemIndex,
   TacsScalar *drill = &C[21];
   getStiffness(A, B, D, As, drill);
 }
-
 
 /*!
   Compute the failure loads for each of the ply angles in the
@@ -421,9 +430,9 @@ void TACSLamParamAllShellConstitutive::evalTangentStiffness(int elemIndex,
 
   Note that the calculations are performed using radians.
 */
-void TACSLamParamAllShellConstitutive::computeFailure(const TacsScalar strain[],
-                                                   TacsScalar fvals[],
-                                                   TacsScalar *_max) {
+void TACSLamParamFullShellConstitutive::computeFailure(const TacsScalar strain[],
+                                                      TacsScalar fvals[],
+                                                      TacsScalar *_max) {
   TacsScalar max = 0.0;
   for (int k = 0; k < numFailAngles; k++) {
     TacsScalar angle = -0.5 * M_PI + k * M_PI / numFailAngles;
@@ -457,7 +466,7 @@ void TACSLamParamAllShellConstitutive::computeFailure(const TacsScalar strain[],
   Compute the derivative of the failure load w.r.t. the strain and
   accumulate the weighted sensitivity into the array 'sens'
 */
-void TACSLamParamAllShellConstitutive::computeFailureStrainSens(
+void TACSLamParamFullShellConstitutive::computeFailureStrainSens(
     const TacsScalar strain[], const TacsScalar weights[], TacsScalar sens[]) {
   sens[0] = sens[1] = sens[2] = 0.0;
   sens[3] = sens[4] = sens[5] = 0.0;
@@ -503,7 +512,8 @@ void TACSLamParamAllShellConstitutive::computeFailureStrainSens(
   Compute the derivative of the failure load w.r.t. the plate
   thickness
 */
-TacsScalar TACSLamParamAllShellConstitutive::computeFailureDVSens(const TacsScalar strain[], const TacsScalar weights[]) {
+TacsScalar TACSLamParamFullShellConstitutive::computeFailureDVSens(
+    const TacsScalar strain[], const TacsScalar weights[]) {
   TacsScalar failSens = 0.0;
 
   for (int k = 0; k < numFailAngles; k++) {
@@ -517,7 +527,9 @@ TacsScalar TACSLamParamAllShellConstitutive::computeFailureDVSens(const TacsScal
 
     orthoPly->failureStrainSens(angle, e, e_sens);
 
-    failSens += 0.5 * weights[2 * k] * (strain[3] * e_sens[0] + strain[4] * e_sens[1] + strain[5] * e_sens[2]);
+    failSens +=
+        0.5 * weights[2 * k] *
+        (strain[3] * e_sens[0] + strain[4] * e_sens[1] + strain[5] * e_sens[2]);
 
     // Compute the strain at the lower surface
     e[0] = strain[0] - 0.5 * t * strain[3];
@@ -526,7 +538,9 @@ TacsScalar TACSLamParamAllShellConstitutive::computeFailureDVSens(const TacsScal
 
     orthoPly->failureStrainSens(angle, e, e_sens);
 
-    failSens -= 0.5 * weights[2 * k + 1] * (strain[3] * e_sens[0] + strain[4] * e_sens[1] + strain[5] * e_sens[2]);
+    failSens -=
+        0.5 * weights[2 * k + 1] *
+        (strain[3] * e_sens[0] + strain[4] * e_sens[1] + strain[5] * e_sens[2]);
   }
 
   return failSens;
@@ -536,7 +550,7 @@ TacsScalar TACSLamParamAllShellConstitutive::computeFailureDVSens(const TacsScal
   Compute the failure load for a series of ply angles and take the
   approximate maximum using the KS function.
 */
-TacsScalar TACSLamParamAllShellConstitutive::evalFailure(
+TacsScalar TACSLamParamFullShellConstitutive::evalFailure(
     int elemIndex, const double pt[], const TacsScalar X[],
     const TacsScalar strain[]) {
   TacsScalar fvals[2 * MAX_NUM_FAIL_ANGLES];
@@ -554,7 +568,7 @@ TacsScalar TACSLamParamAllShellConstitutive::evalFailure(
   Compute the derivative of the failure load w.r.t. the strain
   values
 */
-TacsScalar TACSLamParamAllShellConstitutive::evalFailureStrainSens(
+TacsScalar TACSLamParamFullShellConstitutive::evalFailureStrainSens(
     int elemIndex, const double pt[], const TacsScalar X[],
     const TacsScalar strain[], TacsScalar sens[]) {
   TacsScalar fvals[2 * MAX_NUM_FAIL_ANGLES], weights[2 * MAX_NUM_FAIL_ANGLES];
@@ -578,7 +592,7 @@ TacsScalar TACSLamParamAllShellConstitutive::evalFailureStrainSens(
   Functions to determine the derivative of the failure
   load w.r.t. the design variables
 */
-void TACSLamParamAllShellConstitutive::addFailureDVSens(
+void TACSLamParamFullShellConstitutive::addFailureDVSens(
     int elemIndex, TacsScalar scale, const double pt[], const TacsScalar X[],
     const TacsScalar strain[], int dvLen, TacsScalar dfdx[]) {
   int index = 0;
@@ -595,19 +609,18 @@ void TACSLamParamAllShellConstitutive::addFailureDVSens(
       weights[k] = exp(ksWeight * (fvals[k] - max)) / ks_sum;
     }
 
-    dfdx[index] += scale *computeFailureDVSens(strain, weights);
+    dfdx[index] += scale * computeFailureDVSens(strain, weights);
     index++;
   }
 }
 
 // Retrieve the design variable for plotting purposes
 // --------------------------------------------------
-TacsScalar TACSLamParamAllShellConstitutive::evalDesignFieldValue(
+TacsScalar TACSLamParamFullShellConstitutive::evalDesignFieldValue(
     int elemIndex, const double pt[], const TacsScalar X[], int index) {
   if (index == 0) {
     return t;
-  }
-  else if (index <= 6) {
+  } else if (index <= 6) {
     // Return the bending parameters
     return lp[index + 1];
   }
