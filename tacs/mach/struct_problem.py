@@ -34,7 +34,7 @@ def updateDVGeo(method):
 
 class StructProblem(BaseStructProblem):
     """
-    Base class for TACS problem types. Contains methods common to all TACS problems.
+    MACH StructProblem wrapper for pyTACS StaticProblem class
     """
 
     def __init__(
@@ -366,6 +366,17 @@ class StructProblem(BaseStructProblem):
         self.ptSetName = "tacs_%s_coords" % self.name
         coords0 = self.staticProblem.getNodes()
         self.DVGeo.addPointSet(coords0.reshape(-1, 3), self.ptSetName, **pointSetKwargs)
+
+    def getDVGeo(self):
+        """
+        Get the DVGeometry object.
+
+        Returns
+        -------
+        DVGeometry: pygeo.parameterization.BaseDVGeometry or None
+            DVGeometry object.
+        """
+        return self.DVGeo
 
     def setDesignVars(self, x):
         """
