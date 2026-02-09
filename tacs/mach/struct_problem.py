@@ -351,10 +351,8 @@ class StructProblem(BaseStructProblem):
         dvDict = {}
         if self.comm.rank == 0:
             for dvName in self.massDVDict:
-                if dvName in dvDict:
-                    dvDict[dvName] = dvArray[self.massDVDict[dvName]["num"]]
-            if self.varName in dvDict:
-                dvDict[self.varName] = dvArray[self.structDVList]
+                dvDict[dvName] = dvArray[self.massDVDict[dvName]["num"]]
+            dvDict[self.varName] = dvArray[self.structDVList]
         return self.comm.bcast(dvDict, root=0)
 
     def getVarName(self):
@@ -467,6 +465,7 @@ class StructProblem(BaseStructProblem):
         for dvName in self.massDVDict:
             optProb.addVarGroup(dvName, 1, "c", value=valueDict[dvName], lower=lbDict[dvName], upper=ubDict[dvName], scale=scaleDict[dvName])
 
+        print(valueDict)
         ndv = len(valueDict[self.varName])
         if ndv > 0 and self.varName not in optProb.variables:
             optProb.addVarGroup(self.varName, ndv, "c", value=valueDict[self.varName], lower=lbDict[self.varName], upper=ubDict[self.varName], scale=scaleDict[self.varName])
@@ -690,7 +689,7 @@ class StructProblem(BaseStructProblem):
         oldVarName = self.staticProblem.varName
         for funcName in evalFuncs:
             funcKey = f"{self.name}_{funcName}"
-            if self.varName in funcsSens[funcKey]:
+            if oldVarName in funcsSens[funcKey]:
                 sens = funcsSens[funcKey].pop(oldVarName)
                 newSens = self._convertToMassStructDVDict(sens)
                 funcsSens[funcKey].update(newSens)
