@@ -71,6 +71,17 @@ class StructProblem(BaseStructProblem):
         self.ptSetName = None
         self.loadFile = loadFile
         self.constraints = []
+        self.varName = self.staticProblem.varName
+        globalDVs = self.FEAAssembler.getGlobalDVs()
+        self.massDVDict = {}
+        for dvName in globalDVs:
+            if globalDVs[dvName]["isMassDV"]:
+                self.massDVDict[f"{self.name}_{dvName}"] = globalDVs[dvName]
+        structDVList = np.arange(FEAAssembler.getNumDesignVars())
+        for dv_name in self.massDVDict:
+            structDVList = np.delete(structDVList, self.massDVDict[dv_name]["num"])
+        self.structDVList = structDVList.tolist()
+        self.staticProblem.setVarName("mass_struct")
 
         if self.staticProblem.assembler != self.FEAAssembler.assembler:
             raise RuntimeError(
@@ -320,9 +331,35 @@ class StructProblem(BaseStructProblem):
         """
         self._matVecSolve[:] = value
 
+    def _convertFromMassStructDVDict(self, dvDict):
+        """
+        Convert the design variable dictionary from seperate mass and struct design variables to a single struct_mass design variable vector.
+        """
+        xnew = self.staticProblem.getDesignVars()
+        if self.comm.rank == 0:
+            for dvName in self.massDVDict:
+                if dvName in dvDict:
+                    xnew[self.massDVDict[dvName]["num"]] = dvDict[dvName]
+            if self.varName in dvDict:
+                xnew[self.structDVList] = dvDict[self.varName]
+        return xnew
+
+    def _convertToMassStructDVDict(self, dvArray):
+        """
+        Convert the design variable dictionary from seperate mass and struct design variables to a single struct_mass design variable vector.
+        """
+        dvDict = {}
+        if self.comm.rank == 0:
+            for dvName in self.massDVDict:
+                if dvName in dvDict:
+                    dvDict[dvName] = dvArray[self.massDVDict[dvName]["num"]]
+            if self.varName in dvDict:
+                dvDict[self.varName] = dvArray[self.structDVList]
+        return self.comm.bcast(dvDict, root=0)
+
     def getVarName(self):
         """
-        Get name for the design variables in pyOpt. Only needed
+        Get name for the struct design variables in pyOpt. Only needed
         if more than 1 pytacs object is used in an optimization
 
         Returns
@@ -330,7 +367,7 @@ class StructProblem(BaseStructProblem):
         varName : str
             Name of the design variables used in setDesignVars() dict.
         """
-        return self.staticProblem.getVarName()
+        return self.varName
 
     def setDVGeo(self, DVGeo, pointSetKwargs=None):
         """
@@ -388,8 +425,7 @@ class StructProblem(BaseStructProblem):
             Dictionary of variables which may or may not contain the
             design variable names this object needs
         """
-        if self.comm.rank != 0:
-            x = np.empty(0)
+        x = self._convertFromMassStructDVDict(x)
         self.staticProblem.setDesignVars(x)
 
         for constr in self.constraints:
@@ -421,16 +457,19 @@ class StructProblem(BaseStructProblem):
         optProb : pyOpt_optimization class
             Optimization problem definition to which variables are added
         """
-        ndv = self.FEAAssembler.getTotalNumDesignVars()
-        dvName = self.staticProblem.getVarName()
-        if ndv > 0 and dvName not in optProb.variables:
-            value = self.getOrigDesignVars()
-            lb, ub = self.getDesignVarRange()
-            scale = self.getDesignVarScales()
+        value = self.getOrigDesignVars()
+        lb, ub = self.getDesignVarRange()
+        scale = self.getDesignVarScales()
+        valueDict = self._convertToMassStructDVDict(value)
+        lbDict = self._convertToMassStructDVDict(lb)
+        ubDict = self._convertToMassStructDVDict(ub)
+        scaleDict = self._convertToMassStructDVDict(scale)
+        for dvName in self.massDVDict:
+            optProb.addVarGroup(dvName, 1, "c", value=valueDict[dvName], lower=lbDict[dvName], upper=ubDict[dvName], scale=scaleDict[dvName])
 
-            optProb.addVarGroup(
-                dvName, ndv, "c", value=value, lower=lb, upper=ub, scale=scale
-            )
+        ndv = len(valueDict[self.varName])
+        if ndv > 0 and self.varName not in optProb.variables:
+            optProb.addVarGroup(self.varName, ndv, "c", value=valueDict[self.varName], lower=lbDict[self.varName], upper=ubDict[self.varName], scale=scaleDict[self.varName])
 
     def addConstraintsPyOpt(self, optProb, nonLinear=True, linear=True):
         """
@@ -648,6 +687,14 @@ class StructProblem(BaseStructProblem):
                 if coordName in funcsSens[funcKey]:
                     funcsSens[funcKey].pop(coordName).reshape(-1, 3)
 
+        oldVarName = self.staticProblem.varName
+        for funcName in evalFuncs:
+            funcKey = f"{self.name}_{funcName}"
+            if self.varName in funcsSens[funcKey]:
+                sens = funcsSens[funcKey].pop(oldVarName)
+                newSens = self._convertToMassStructDVDict(sens)
+                funcsSens[funcKey].update(newSens)
+    
     @updateDVGeo
     def evalConstraintsSens(
         self,
@@ -717,6 +764,13 @@ class StructProblem(BaseStructProblem):
             for conKey in sens:
                 if coordName in sens[conKey]:
                     sens[conKey].pop(coordName).reshape(-1, 3)
+
+        oldVarName = self.staticProblem.varName
+        for conKey in sens:
+            if oldVarName in sens[conKey]:
+                oldSens = sens[conKey].pop(oldVarName)
+                newSens = self._convertToMassStructDVDict(oldSens)
+                sens[conKey].update(newSens)
 
         fconSens.update(sens)
 
