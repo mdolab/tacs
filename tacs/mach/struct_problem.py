@@ -77,7 +77,7 @@ class StructProblem(BaseStructProblem):
         for dvName in globalDVs:
             if globalDVs[dvName]["isMassDV"]:
                 self.massDVDict[f"{self.name}_{dvName}"] = globalDVs[dvName]
-        structDVList = np.arange(FEAAssembler.getNumDesignVars())
+        structDVList = np.arange(FEAAssembler.getTotalNumDesignVars())
         for dv_name in self.massDVDict:
             structDVList = np.delete(structDVList, self.massDVDict[dv_name]["num"])
         self.structDVList = structDVList.tolist()
@@ -351,8 +351,8 @@ class StructProblem(BaseStructProblem):
         dvDict = {}
         if self.comm.rank == 0:
             for dvName in self.massDVDict:
-                dvDict[dvName] = dvArray[self.massDVDict[dvName]["num"]]
-            dvDict[self.varName] = dvArray[self.structDVList]
+                dvDict[dvName] = dvArray[..., self.massDVDict[dvName]["num"]]
+            dvDict[self.varName] = dvArray[..., self.structDVList]
         return self.comm.bcast(dvDict, root=0)
 
     def getVarName(self):
@@ -444,9 +444,11 @@ class StructProblem(BaseStructProblem):
                 "were not created by same pyTACS assembler"
             )
 
+        constr.setVarName(self.staticProblem.varName)
+
         self.constraints.append(constr)
 
-    def addVariablesPyOpt(self, optProb):
+    def addVariablesPyOpt(self, optProb, includeMassDVs=True):
         """
         Add the current set of variables to the optProb object.
 
@@ -454,6 +456,9 @@ class StructProblem(BaseStructProblem):
         ----------
         optProb : pyOpt_optimization class
             Optimization problem definition to which variables are added
+        includeMassDVs : bool
+            Flag to include mass design variables in the optimization.
+            Defaults to True.
         """
         value = self.getOrigDesignVars()
         lb, ub = self.getDesignVarRange()
@@ -462,15 +467,16 @@ class StructProblem(BaseStructProblem):
         lbDict = self._convertToMassStructDVDict(lb)
         ubDict = self._convertToMassStructDVDict(ub)
         scaleDict = self._convertToMassStructDVDict(scale)
-        for dvName in self.massDVDict:
-            optProb.addVarGroup(dvName, 1, "c", value=valueDict[dvName], lower=lbDict[dvName], upper=ubDict[dvName], scale=scaleDict[dvName])
+        
+        if includeMassDVs:
+            for dvName in self.massDVDict:
+                optProb.addVarGroup(dvName, 1, "c", value=valueDict[dvName], lower=lbDict[dvName], upper=ubDict[dvName], scale=scaleDict[dvName])
 
-        print(valueDict)
         ndv = len(valueDict[self.varName])
         if ndv > 0 and self.varName not in optProb.variables:
             optProb.addVarGroup(self.varName, ndv, "c", value=valueDict[self.varName], lower=lbDict[self.varName], upper=ubDict[self.varName], scale=scaleDict[self.varName])
 
-    def addConstraintsPyOpt(self, optProb, nonLinear=True, linear=True):
+    def addConstraintsPyOpt(self, optProb, nonLinear=True, linear=True, includeMassDVs=True):
         """
         Add any linear constraints that were generated during setup to
         the specified pyOpt problem.
@@ -483,6 +489,9 @@ class StructProblem(BaseStructProblem):
             Flag to include non-linear constraints.
         linear : bool
             Flag to include linear constraints.
+        includeMassDVs : bool
+            Flag to include mass design variables in the optimization.
+            Defaults to True.
         """
         fcon = {}
         fconSens = {}
@@ -503,6 +512,11 @@ class StructProblem(BaseStructProblem):
             if nCon > 0:
                 # Save the nonlinear constraint name
                 lb, ub = conBounds[conName]
+
+                if includeMassDVs is False:
+                    for key in self.massDVDict:
+                        if key in fconSens[conName]:
+                            fconSens[conName].pop(key)
 
                 # Just evaluate the constraint to get the jacobian structure
                 wrt = list(fconSens[conName].keys())
