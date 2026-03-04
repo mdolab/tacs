@@ -839,6 +839,9 @@ class pyTACS(BaseUI):
 
         self._isNonlinear = self._checkNonlinearity()
 
+        # Vector used to store temporarily store state variables
+        self.tempVec = self.assembler.createVec()
+
     @postinitialize_method
     def _checkNonlinearity(self) -> bool:
         """Check if the finite element model is nonlinear
@@ -1065,7 +1068,7 @@ class pyTACS(BaseUI):
                     or (propInfo.mid4 is not None)
                 ):
                     self._TACSWarning(
-                        f"PCOMP shell property {propertyID} has defined multiple material IDs (MID2, MID3, or MID4). "
+                        f"PSHELL property {propertyID} has defined multiple material IDs (MID2, MID3, or MID4). "
                         "Only the first material (MID1) will be used."
                     )
 
@@ -1506,9 +1509,8 @@ class pyTACS(BaseUI):
             self.assembler.applyBCs(vec)
         elif isinstance(vec, np.ndarray):
             array = vec
-            # Create temporary BVec
-            vec = self.assembler.createVec()
             # Copy array values to BVec
+            vec = self.tempVec
             vec.getArray()[:] = array
             # Apply BCs
             self.assembler.applyBCs(vec)
@@ -1530,9 +1532,8 @@ class pyTACS(BaseUI):
             self.assembler.setBCs(vec)
         elif isinstance(vec, np.ndarray):
             array = vec
-            # Create temporary BVec
-            vec = self.assembler.createVec()
             # Copy array values to BVec
+            vec = self.tempVec
             vec.getArray()[:] = array
             # Apply BCs
             self.assembler.setBCs(vec)
