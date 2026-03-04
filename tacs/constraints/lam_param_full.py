@@ -1,10 +1,11 @@
 """
-Lamination parameter constraints for composite design variables.
+Lamination parameter constraints for composite design variables, specifically
+for the LamParamFullShellConstitutive consitutive model.
 
 This module provides a TACS constraint implementation that enforces
 non-linear relationships between lamination parameters for composite
-components. For each selected component, three scalar constraints are
-evaluated to enforce in-plane and bending feasibility limits.
+components. For each selected component of type LamParamFullShellConstitutive,
+three scalar constraints are evaluated to enforce in-plane and bending feasibility limits.
 
 Lamination parameter ordering
 -----------------------------
@@ -57,6 +58,7 @@ import scipy as sp
 import numpy as np
 
 from tacs.constraints.base import TACSConstraint
+from tacs.constitutive import LamParamFullShellConstitutive
 
 
 class LamParamFullConstraint(TACSConstraint):
@@ -150,6 +152,15 @@ class LamParamFullConstraint(TACSConstraint):
         else:
             nComps = self.meshLoader.getNumComponents()
             compIDs = list(range(nComps))
+
+        # Check that all compIDs are of correct type
+        for compID in compIDs:
+            elemObj = self.meshLoader.getElementObject(compID, 0)
+            conObj = elemObj.getConstitutive()
+            if not isinstance(conObj, LamParamFullShellConstitutive):
+                raise TypeError(
+                    f"Constitutive object for compID {compID} is not of type LamParamFullShellConstitutive"
+                )
 
         # If dvIndices not specified, use all available DVs
         if dvIndices is None:
