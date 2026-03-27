@@ -483,7 +483,7 @@ class StructProblem(BaseStructProblem):
         if ndv > 0 and self.varName not in optProb.variables:
             optProb.addVarGroup(self.varName, ndv, "c", value=valueDict[self.varName], lower=lbDict[self.varName], upper=ubDict[self.varName], scale=scaleDict[self.varName])
 
-    def addConstraintsPyOpt(self, optProb, nonLinear=True, linear=True, includeMassDVs=True, exclude_wrt=None):
+    def addConstraintsPyOpt(self, optProb, nonLinear=True, linear=True, includeMassDVs=True, excludeWRT=None):
         """
         Add any linear constraints that were generated during setup to
         the specified pyOpt problem.
@@ -499,7 +499,7 @@ class StructProblem(BaseStructProblem):
         includeMassDVs : bool
             Flag to include mass design variables in the optimization.
             Defaults to True.
-        exclude_wrt : list or str
+        excludeWRT : list or str
             DV names to exclude from the w.r.t. list when adding the constraint
             to the opt problem.
         """
