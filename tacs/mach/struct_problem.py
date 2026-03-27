@@ -11,6 +11,7 @@ import copy
 from baseclasses import StructProblem as BaseStructProblem
 
 import numpy as np
+import scipy as sp
 from mpi4py import MPI
 import pyNastran.bdf as pn
 
@@ -71,6 +72,7 @@ class StructProblem(BaseStructProblem):
         self.ptSetName = None
         self.loadFile = loadFile
         self.constraints = []
+        self.constraintsAddToPyOpt = []
         self.varName = self.staticProblem.varName
         globalDVs = self.FEAAssembler.getGlobalDVs()
         self.massDVDict = {}
@@ -429,7 +431,7 @@ class StructProblem(BaseStructProblem):
         for constr in self.constraints:
             constr.setDesignVars(x)
 
-    def addConstraint(self, constr):
+    def addConstraint(self, constr, addToPyOpt=True):
         """
         Add pyTACS constraint object to StructProblem.
 
@@ -437,6 +439,10 @@ class StructProblem(BaseStructProblem):
         ----------
         constr : tacs.constraints.TACSConstraint
             pyTACS Constraint object
+
+        addToPyOpt : bool
+            Flag for whether to include constraint in pyOpt when calling `addConstraintsPyOpt`.
+            Defaults to `True`.
         """
         if self.staticProblem.assembler != constr.assembler:
             raise ValueError(
@@ -447,6 +453,7 @@ class StructProblem(BaseStructProblem):
         constr.setVarName(self.staticProblem.varName)
 
         self.constraints.append(constr)
+        self.constraintsAddToPyOpt.append(addToPyOpt)
 
     def addVariablesPyOpt(self, optProb, includeMassDVs=True):
         """
@@ -476,7 +483,7 @@ class StructProblem(BaseStructProblem):
         if ndv > 0 and self.varName not in optProb.variables:
             optProb.addVarGroup(self.varName, ndv, "c", value=valueDict[self.varName], lower=lbDict[self.varName], upper=ubDict[self.varName], scale=scaleDict[self.varName])
 
-    def addConstraintsPyOpt(self, optProb, nonLinear=True, linear=True, includeMassDVs=True):
+    def addConstraintsPyOpt(self, optProb, nonLinear=True, linear=True, includeMassDVs=True, exclude_wrt=None):
         """
         Add any linear constraints that were generated during setup to
         the specified pyOpt problem.
@@ -492,24 +499,29 @@ class StructProblem(BaseStructProblem):
         includeMassDVs : bool
             Flag to include mass design variables in the optimization.
             Defaults to True.
+        exclude_wrt : list or str
+            DV names to exclude from the w.r.t. list when adding the constraint
+            to the opt problem.
         """
         fcon = {}
         fconSens = {}
         conSizes = {}
         conBounds = {}
         conIsLinear = {}
+        conAddToPyOpt = {}
         self.evalConstraints(fcon, nonLinear=nonLinear, linear=linear)
         self.evalConstraintsSens(fconSens, nonLinear=nonLinear, linear=linear)
-        for constr in self.constraints:
+        for constr, addToPyOpt in zip(self.constraints, self.constraintsAddToPyOpt):
             constr.getConstraintSizes(conSizes)
             constr.getConstraintBounds(conBounds)
             keys = constr.getConstraintKeys()
             for key in keys:
                 conIsLinear[f"{constr.name}_{key}"] = constr.isLinear
+                conAddToPyOpt[f"{constr.name}_{key}"] = addToPyOpt
 
         for conName in fcon:
             nCon = conSizes[conName]
-            if nCon > 0:
+            if conAddToPyOpt[conName] and nCon > 0:
                 # Save the nonlinear constraint name
                 lb, ub = conBounds[conName]
 
@@ -520,6 +532,17 @@ class StructProblem(BaseStructProblem):
 
                 # Just evaluate the constraint to get the jacobian structure
                 wrt = list(fconSens[conName].keys())
+
+                # we may want to remove specific dvs from the wrt list
+                if exclude_wrt is not None:
+                    if isinstance(exclude_wrt, str):
+                        exclude_wrt = [exclude_wrt]
+
+                    for name in exclude_wrt:
+                        if name in wrt:
+                            wrt.remove(name)
+                            fconSens[conName].pop(name)
+
                 optProb.addConGroup(
                     conName,
                     nCon,
@@ -757,6 +780,8 @@ class StructProblem(BaseStructProblem):
                     # Pop out the constraint sensitivities wrt TACS coords
                     dIdpt = sens[conKey].pop(coordName)
                     # Check if the constraint sensitivities wrt TACS coords are zero on all procs
+                    if isinstance(dIdpt, np.ndarray):
+                        dIdpt = sp.sparse.csr_matrix(dIdpt)
                     total_nnz = self.comm.allreduce(dIdpt.nnz, op=MPI.SUM)
                     if total_nnz == 0:
                         # if so, skip DVGeo sensitivities
@@ -1145,7 +1170,7 @@ class StructProblem(BaseStructProblem):
 
         Returns
         -------
-        tacs.TACS.Vec
+        numpy.ndarray
             Derivative vector with respect to structural design variables.
         """
         dIdXdv = self.FEAAssembler.createDesignVec()
@@ -1218,7 +1243,7 @@ class StructProblem(BaseStructProblem):
             )
 
         # Convert result back into a dictionary
-        prodDict = self.convertDesignVecToDict(prodDV.getArray())
+        prodDict = self._convertToMassStructDVDict(prodDV.getArray())
 
         if self.DVGeo is not None:
             prodXpt = self.FEAAssembler.createNodeVec(asBVec=True)
@@ -1384,7 +1409,7 @@ class StructProblem(BaseStructProblem):
 
         Returns
         -------
-        list of tacs.TACS.Vec
+        list of numpy.ndarray
             List of sensitivity products for each objective.
         """
         products = [self.FEAAssembler.createNodeVec() for obj in objectives]
@@ -1404,7 +1429,7 @@ class StructProblem(BaseStructProblem):
 
         Returns
         -------
-        list of tacs.TACS.Vec
+        list of numpy.ndarray
             List of sensitivity products for each objective.
         """
         products = [self.FEAAssembler.createDesignVec() for obj in objectives]
@@ -1429,7 +1454,7 @@ class StructProblem(BaseStructProblem):
             [self._matVecSolve], [dvProd], scale=1.0
         )
         # Convert result back into a dictionary
-        prodDict = self.convertDesignVecToDict(dvProd.getArray())
+        prodDict = self._convertToMassStructDVDict(dvProd.getArray())
 
         if self.DVGeo is not None:
             xptProd = self.FEAAssembler.createNodeVec(asBVec=True)
