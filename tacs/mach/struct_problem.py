@@ -586,9 +586,6 @@ class StructProblem(BaseStructProblem):
 
         Parameters
         ----------
-        Fext : numpy.ndarray or tacs.TACS.Vec, optional
-            Distributed array containing additional loads (ex. aerodynamic forces for aerostructural coupling)
-            to applied to RHS of the static problem, by default None
         damp : float
             Value to use to damp the solution update.
         useAitkenAcceleration : bool
@@ -642,7 +639,7 @@ class StructProblem(BaseStructProblem):
         # Set load scale back
         self.staticProblem.setLoadScale(loadScale0)
 
-        return successFlag
+        return damp
 
     @updateDVGeo
     def evalFunctions(self, funcs, evalFuncs=None, ignoreMissing=False):
