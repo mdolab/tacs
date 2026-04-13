@@ -548,7 +548,7 @@ class StructProblem(BaseStructProblem):
         * **Mass DVs** — each registered as a scalar variable group named
           ``"{problemName}_{dvName}"``.
         * **Structural DVs** — registered as a single vector variable group named
-          ``self.varName`` (``"mass_struct"``).  Skipped if the group already
+          ``self.varName`` (``"struct"``).  Skipped if the group already
           exists in ``optProb`` (prevents duplicate registration when multiple
           StructProblems share the same assembler).
 
