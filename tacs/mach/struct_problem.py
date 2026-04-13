@@ -847,6 +847,15 @@ class StructProblem(BaseStructProblem):
                     )
                     funcsSens[funcKey].update(dIdx)
 
+        # Convert old variable names to seperate mass/struct dv keys
+        oldVarName = self.staticProblem.varName
+        for funcName in evalFuncs:
+            funcKey = f"{self.name}_{funcName}"
+            if oldVarName in funcsSens[funcKey]:
+                sens = funcsSens[funcKey].pop(oldVarName)
+                newSens = self.convertDesignVecToDict(sens)
+                funcsSens[funcKey].update(newSens)
+
     @updateDVGeo
     def evalConstraintsSens(
         self,
@@ -911,6 +920,13 @@ class StructProblem(BaseStructProblem):
                     dIdx_dict = self.DVGeo.convertSensitivityToDict(np.atleast_2d(dIdx))
                     # Update sensitivity dict with new DVGeo sensitivities
                     sens[conKey].update(dIdx_dict)
+
+        oldVarName = self.staticProblem.varName
+        for conKey in sens:
+            if oldVarName in sens[conKey]:
+                oldSens = sens[conKey].pop(oldVarName)
+                newSens = self.convertDesignVecToDict(oldSens)
+                sens[conKey].update(newSens)
 
         fconSens.update(sens)
 
