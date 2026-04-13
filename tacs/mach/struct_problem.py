@@ -809,7 +809,7 @@ class StructProblem(BaseStructProblem):
                     constr.evalConstraints(fcon, evalCons, ignoreMissing)
 
     @updateDVGeo
-    def evalFunctionsSens(self, funcsSens, evalFuncs=None, includeXptSens=False):
+    def evalFunctionsSens(self, funcsSens, evalFuncs=None):
         """
         Evaluate the sensitivity of the desired functions
 
@@ -819,13 +819,13 @@ class StructProblem(BaseStructProblem):
             Dictionary into which the function sensitivities are saved
         evalFuncs : iterable object containing strings
             The functions that the user wants evaluated
-        includeXptSens : bool
-            Flag to include sensitivities with respect to the node locations.
         """
         if evalFuncs is None:
             evalFuncs = self.evalFuncs
 
-        self.staticProblem.evalFunctionsSens(funcsSens, evalFuncs)
+        self.staticProblem.evalFunctionsSens(
+            funcsSens, evalFuncs, includeXptSens=self._includeXptSens
+        )
 
         for funcName in evalFuncs:
             funcKey = f"{self.name}_{funcName}"
@@ -847,21 +847,6 @@ class StructProblem(BaseStructProblem):
                     )
                     funcsSens[funcKey].update(dIdx)
 
-        # Pop out the node sensitivities if requested
-        elif not includeXptSens:
-            for funcName in evalFuncs:
-                funcKey = f"{self.name}_{funcName}"
-                if coordName in funcsSens[funcKey]:
-                    funcsSens[funcKey].pop(coordName).reshape(-1, 3)
-
-        oldVarName = self.staticProblem.varName
-        for funcName in evalFuncs:
-            funcKey = f"{self.name}_{funcName}"
-            if oldVarName in funcsSens[funcKey]:
-                sens = funcsSens[funcKey].pop(oldVarName)
-                newSens = self.convertDesignVecToDict(sens)
-                funcsSens[funcKey].update(newSens)
-
     @updateDVGeo
     def evalConstraintsSens(
         self,
@@ -869,7 +854,6 @@ class StructProblem(BaseStructProblem):
         evalCons=None,
         nonLinear=True,
         linear=False,
-        includeXptSens=False,
     ):
         """
         This is the main routine for returning useful (sensitivity)
@@ -888,14 +872,14 @@ class StructProblem(BaseStructProblem):
             Flag to include non-linear constraints.
         linear : bool
             Flag to include linear constraints.
-        includeXptSens : bool
-            Flag to include sensitivities with respect to the node locations.
         """
         sens = {}
         for constr in self.constraints:
             if evalCons is None or constr.name in evalCons:
                 if (linear and constr.isLinear) or (nonLinear and not constr.isLinear):
-                    constr.evalConstraintsSens(sens, evalCons)
+                    constr.evalConstraintsSens(
+                        sens, evalCons, includeXptSens=self._includeXptSens
+                    )
 
         for conKey in sens:
             dvKey = self.staticProblem.getVarName()
@@ -903,8 +887,8 @@ class StructProblem(BaseStructProblem):
                 sens[conKey][dvKey] = self.comm.bcast(sens[conKey][dvKey], root=0)
 
         # Compute the DVGeo sensitivities if requested
-        coordName = self.staticProblem.getCoordName()
         if self.DVGeo is not None:
+            coordName = self.staticProblem.getCoordName()
             self.DVGeo.computeTotalJacobian(self.ptSetName, config=self.name)
             for conKey in sens:
                 if coordName in sens[conKey]:
@@ -928,19 +912,6 @@ class StructProblem(BaseStructProblem):
                     # Update sensitivity dict with new DVGeo sensitivities
                     sens[conKey].update(dIdx_dict)
 
-        # Pop out the node sensitivities if requested
-        elif not includeXptSens:
-            for conKey in sens:
-                if coordName in sens[conKey]:
-                    sens[conKey].pop(coordName).reshape(-1, 3)
-
-        oldVarName = self.staticProblem.varName
-        for conKey in sens:
-            if oldVarName in sens[conKey]:
-                oldSens = sens[conKey].pop(oldVarName)
-                newSens = self.convertDesignVecToDict(oldSens)
-                sens[conKey].update(newSens)
-
         fconSens.update(sens)
 
     def getVarsPerNode(self):
@@ -953,6 +924,18 @@ class StructProblem(BaseStructProblem):
             Number of degrees of freedom of each node in the domain.
         """
         return self.staticProblem.getVarsPerNode()
+
+    @property
+    def _includeXptSens(self):
+        """
+        Check if nodal sensitivities should be included (i.e. if DVGeo is set).
+
+        Returns
+        -------
+        bool
+            True if nodal sensitivities should be included, False otherwise.
+        """
+        return self.DVGeo is not None
 
     def getNumNodes(self):
         """
