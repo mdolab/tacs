@@ -974,10 +974,10 @@ class StructProblem(BaseStructProblem):
         numpy.ndarray
             Array containing all design variable values across all processors.
         """
-        local_dvs = self.FEAAssembler.getOrigDesignVars()
-        all_local_dvs = self.comm.allgather(local_dvs)
-        global_dvs = np.concatenate(all_local_dvs)
-        return global_dvs.astype(float)
+        localDVs = self.FEAAssembler.getOrigDesignVars()
+        dvDict = self.convertDesignVecToDict(localDVs)
+        dvDict = {dvKey: np.float64(dvVal) for dvKey, dvVal in dvDict.items()}
+        return dvDict
 
     def getDesignVarRange(self):
         """
