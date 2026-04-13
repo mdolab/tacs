@@ -573,10 +573,6 @@ class StructProblem(BaseStructProblem):
         value = self.getOrigDesignVars()
         lb, ub = self.getDesignVarRange()
         scale = self.getDesignVarScales()
-        valueDict = self.convertDesignVecToDict(value)
-        lbDict = self.convertDesignVecToDict(lb)
-        ubDict = self.convertDesignVecToDict(ub)
-        scaleDict = self.convertDesignVecToDict(scale)
 
         # Register each mass DV as its own scalar variable group so it can be
         # identified and shared with other disciplines in a coupled optimisation.
@@ -971,8 +967,8 @@ class StructProblem(BaseStructProblem):
 
         Returns
         -------
-        numpy.ndarray
-            Array containing all design variable values across all processors.
+        dict[numpy.ndarray]
+            dict containing all design variable values across all processors.
         """
         localDVs = self.FEAAssembler.getOrigDesignVars()
         dvDict = self.convertDesignVecToDict(localDVs)
@@ -986,15 +982,15 @@ class StructProblem(BaseStructProblem):
 
         Returns
         -------
-        tuple of numpy.ndarray
+        tuple of dict[numpy.ndarray]
             Lower and upper bounds for the design variables.
         """
-        local_lb, local_ub = self.FEAAssembler.getDesignVarRange()
-        all_lb = self.comm.allgather(local_lb)
-        global_lbs = np.concatenate(all_lb)
-        all_ub = self.comm.allgather(local_ub)
-        global_ubs = np.concatenate(all_ub)
-        return global_lbs.astype(float), global_ubs.astype(float)
+        localLB, localUB = self.FEAAssembler.getDesignVarRange()
+        lbDict = self.convertDesignVecToDict(localLB)
+        ubDict = self.convertDesignVecToDict(localUB)
+        lbDict = {dvKey: np.float64(dvVal) for dvKey, dvVal in lbDict.items()}
+        ubDict = {dvKey: np.float64(dvVal) for dvKey, dvVal in ubDict.items()}
+        return lbDict, ubDict
 
     def getDesignVarScales(self):
         """
@@ -1007,7 +1003,9 @@ class StructProblem(BaseStructProblem):
         numpy.ndarray
             Scaling values for design variables.
         """
-        return np.array(self.FEAAssembler.scaleList)
+        scaleDict = self.convertDesignVecToDict(np.array(self.FEAAssembler.scaleList))
+        scaleDict = {dvKey: np.float64(dvVal) for dvKey, dvVal in scaleDict.items()}
+        return scaleDict
 
     def getNumDesignVars(self):
         """
