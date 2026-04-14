@@ -617,11 +617,6 @@ class StructProblem(BaseStructProblem):
         determine the sparsity pattern, then calls ``optProb.addConGroup`` for
         each constraint that was added with ``addToPyOpt=True``.
 
-        By default, constraint Jacobian columns include mass DV keys.  Set
-        ``includeMassDVs=False`` to strip them from the ``wrt`` list — useful
-        when a mass DV is owned by another discipline and the structural Jacobian
-        w.r.t. that DV is zero or handled elsewhere.
-
         Parameters
         ----------
         optProb : pyoptsparse.Optimization
@@ -630,9 +625,6 @@ class StructProblem(BaseStructProblem):
             Include non-linear constraints. Defaults to ``True``.
         linear : bool, optional
             Include linear constraints. Defaults to ``True``.
-        includeMassDVs : bool, optional
-            Include mass DV columns in the constraint Jacobian ``wrt`` list.
-            Defaults to ``True``.
         excludeWRT : list of str or str, optional
             Additional DV names to remove from the ``wrt`` list for every
             constraint.  Useful for DVs whose structural sensitivity is
@@ -1330,7 +1322,6 @@ class StructProblem(BaseStructProblem):
         numpy.ndarray
             Transpose matrix-vector product result.
         """
-        # The old way (for testing purposes)
         self._matVecRHS.zeroEntries()
         svList = [self.FEAAssembler.createVec() for f in evalFuncs]
         self.staticProblem.addSVSens(evalFuncs, svList)
@@ -1362,7 +1353,6 @@ class StructProblem(BaseStructProblem):
         dict
             Dictionary containing transpose matrix-vector product results.
         """
-        # # The old way (for testing purposes)
         prodDV = self.FEAAssembler.createDesignVec(asBVec=True)
         for f in evalFuncs:
             f_mangled = self.name + "_%s" % f
