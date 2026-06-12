@@ -9,7 +9,6 @@ This tests the MACH StructProblem object's DVGeo and design variable sensitiviti
 
 import os
 import numpy as np
-from mpi4py import MPI
 import unittest
 
 from tacs import pyTACS

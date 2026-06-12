@@ -15,7 +15,6 @@ import copy
 import os
 import time
 from collections import OrderedDict
-import warnings
 
 import numpy as np
 import pyNastran.bdf as pn
