@@ -29,8 +29,8 @@ def analyticCantileverDisplacement(alpha):
     for a in range(len(alpha)):
         if alpha[a] != 0.0:
             # Use the linear cantilever tip rotation as a good starting guess for the nonlinear rotation
-            def ResidualFun(theta):
-                return tipRotationResidual(theta, alpha[a])
+            def ResidualFun(theta, alpha_a=alpha[a]):
+                return tipRotationResidual(theta, alpha_a)
 
             sol = root_scalar(
                 ResidualFun,
