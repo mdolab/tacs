@@ -9,6 +9,9 @@ from .base import TACSConstraint
 __all__ = [
     "AdjacencyConstraint",
     "DVConstraint",
+    "PanelLengthConstraint",
+    "PanelWidthConstraint",
+    "StiffenerLengthConstraint",
     "VolumeConstraint",
     "TACSConstraint",
 ]
