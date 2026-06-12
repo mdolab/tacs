@@ -80,7 +80,7 @@ class TACSSystem(BaseUI):
         if more than 1 pytacs object is used in an optimization
 
         Returns
-        ----------
+        -------
         varName : str
             Name of the design variables used in setDesignVars() dict.
         """
@@ -195,7 +195,7 @@ class TACSSystem(BaseUI):
         Get name for the nodal coordinates in pyOpt.
 
         Returns
-        ----------
+        -------
         coordName : str
             Name of the nodal coordinates used in setNodes() dict.
         """
