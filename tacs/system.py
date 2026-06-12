@@ -117,10 +117,10 @@ class TACSSystem(BaseUI):
             # or array or TACSBVec
             else:
                 self.copyToTACSVec(x, self.x)
-        except ValueError:
+        except ValueError as err:
             raise ValueError(
                 "setDesignVars must be called with either a numpy array, TACS Vec, or dict containing one of the two, as input."
-            )
+            ) from err
 
         # Set the variables in tacs
         self.assembler.setDesignVars(self.x)
@@ -231,10 +231,10 @@ class TACSSystem(BaseUI):
             # or array or TACSBVec
             else:
                 self.copyToTACSVec(Xpts, self.Xpts)
-        except ValueError:
+        except ValueError as err:
             raise ValueError(
                 "setNodes must be called with either a numpy array, TACS Vec, or dict containing one of the two, as input."
-            )
+            ) from err
         self.assembler.setNodes(self.Xpts)
 
     def _arrayToNodeVec(self, xptsArray):
