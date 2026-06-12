@@ -14,5 +14,6 @@ __all__ = [
     "PanelWidthConstraint",
     "StiffenerLengthConstraint",
     "VolumeConstraint",
+    "LamParamFullConstraint",
     "TACSConstraint",
 ]
