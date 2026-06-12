@@ -121,7 +121,7 @@ class StaticTestCase:
             self.adjoint_list = []
             self.dfddv_list = []
             self.dfdx_list = []
-            for i in range(len(self.func_list)):
+            for _ in range(len(self.func_list)):
                 self.dfdu_list.append(self.assembler.createVec())
                 self.adjoint_list.append(self.assembler.createVec())
                 self.dfddv_list.append(self.assembler.createDesignVec())

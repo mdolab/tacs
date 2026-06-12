@@ -142,7 +142,7 @@ class FlatPlateAnalysis:
 
         _debug = False
         if _debug:
-            for imode, interp_mode in enumerate(nominal_interp_modes):
+            for interp_mode in nominal_interp_modes:
                 interp_mat = new_plate._vec_to_plate_matrix(interp_mode)
                 import matplotlib.pyplot as plt
 
