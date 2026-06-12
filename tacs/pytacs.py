@@ -1846,7 +1846,7 @@ class pyTACS(BaseUI):
             Scale factor for time, by default 1.0
         """
         # Make sure problems is in a list
-        if hasattr(problems, "__iter__") == False:
+        if not hasattr(problems, "__iter__"):
             problems = [problems]
         elif isinstance(problems, dict):
             problems = list(problems.values())
