@@ -117,7 +117,6 @@ def blade_elemCallBack(
 
     # Always use the 0-deg biased layup for the stiffeners
     stiffenerPlyFractions = skinPlyFracs
-    numPlies = len(plyAngles)
 
     # --- Setup DV numbering and scaling ---
 

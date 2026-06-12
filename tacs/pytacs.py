@@ -1042,7 +1042,6 @@ class pyTACS(BaseUI):
                     tNum = elemDict[propertyID]["dvs"]["T"].dvids[0] - 1
                     minThickness = elemDict[propertyID]["dvs"]["T"].dvids_ref[0].xlb
                     maxThickness = elemDict[propertyID]["dvs"]["T"].dvids_ref[0].xub
-                    name = elemDict[propertyID]["dvs"]["T"].dvids_ref[0].label
                     self.scaleList[tNum - 1] = elemDict[propertyID]["dvs"]["T"].coeffs[
                         0
                     ]
@@ -1126,7 +1125,6 @@ class pyTACS(BaseUI):
                     tNum = elemDict[propertyID]["dvs"]["T"].dvids[0] - 1
                     minThickness = elemDict[propertyID]["dvs"]["T"].dvids_ref[0].xlb
                     maxThickness = elemDict[propertyID]["dvs"]["T"].dvids_ref[0].xub
-                    name = elemDict[propertyID]["dvs"]["T"].dvids_ref[0].label
                     self.scaleList[tNum - 1] = elemDict[propertyID]["dvs"]["T"].coeffs[
                         0
                     ]

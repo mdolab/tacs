@@ -148,8 +148,6 @@ class TestMACHWingboxExample(MACHStructProblemTestCase.MACHStructProblemTest):
         # Design variable values, bounds, and scaling factors
         # ==============================================================================
         # Panel length
-        panelLengthMax = np.inf
-        panelLengthMin = 0.0
         panelLengthScale = 1.0
 
         # Stiffener pitch
@@ -248,7 +246,6 @@ class TestMACHWingboxExample(MACHStructProblemTestCase.MACHStructProblemTest):
 
             # Always use the 0-deg biased layup for the stiffeners
             stiffenerPlyFractions = panelPlyFractions
-            numPlies = len(plyAngles)
 
             # --- Setup DV numbering and scaling ---
 
