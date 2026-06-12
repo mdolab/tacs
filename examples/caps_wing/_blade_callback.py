@@ -1,9 +1,9 @@
-__all__ = ["blade_elemCallBack"]
-
 """
 Adapted by Sean Engelstad
 Source : Alasdair Christison Gray
 """
+
+__all__ = ["blade_elemCallBack"]
 
 from tacs import elements, constitutive, TACS
 import numpy as np
