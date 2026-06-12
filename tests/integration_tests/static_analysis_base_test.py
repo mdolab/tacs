@@ -25,6 +25,25 @@ for the unittest class. This is handled in the base class.
 """
 
 
+def getLocalCoords(assembler):
+    """Get the local node coordinates from a TACS assembler as an (numOwnedNodes, 3) array.
+
+    Parameters
+    ----------
+    assembler : TACS.Assembler
+        The TACS assembler object.
+
+    Returns
+    -------
+    local_xyz : numpy.ndarray
+        Array of shape (numOwnedNodes, 3) containing the local node coordinates.
+    """
+    xpts0 = assembler.createNodeVec()
+    assembler.getNodes(xpts0)
+    local_xyz = xpts0.getArray().reshape(assembler.getNumOwnedNodes(), 3)
+    return local_xyz
+
+
 class StaticTestCase:
     class StaticTest(unittest.TestCase):
         def setUp(self):
