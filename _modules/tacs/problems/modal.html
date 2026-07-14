@@ -162,14 +162,14 @@
         <span class="c1"># Problem name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
 
+        <span class="c1"># Set eigenvalue parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numEigs</span> <span class="o">=</span> <span class="n">numEigs</span>
+
         <span class="c1"># Default setup for common problem class objects, sets up comm and options</span>
         <span class="n">TACSProblem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">assembler</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">outputViewer</span><span class="p">,</span> <span class="n">meshLoader</span><span class="p">,</span> <span class="n">isNonlinear</span>
         <span class="p">)</span>
-
-        <span class="c1"># Set time eigenvalue parameters</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">numEigs</span> <span class="o">=</span> <span class="n">numEigs</span>
 
         <span class="c1"># String name used in evalFunctions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">valName</span> <span class="o">=</span> <span class="s2">&quot;eigsm&quot;</span>
@@ -285,7 +285,7 @@
 <span class="sd">        Get the number of eigenvalues requested from solver for this problem.</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        ----------</span>
+<span class="sd">        -------</span>
 <span class="sd">        numEigs : int</span>
 <span class="sd">            Number of eigenvalues.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -323,7 +323,7 @@
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; funcs = {}</span>
 <span class="sd">        &gt;&gt;&gt; modalProblem.solve()</span>
-<span class="sd">        &gt;&gt;&gt; modalProblem.evalFunctions(funcs, &#39;eigsm.0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; modalProblem.evalFunctions(funcs, &quot;eigsm.0&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; funcs</span>
 <span class="sd">        &gt;&gt;&gt; # Result will look like (if ModalProblem has name of &#39;c1&#39;):</span>
 <span class="sd">        &gt;&gt;&gt; # {&#39;c1_eigsm.0&#39;:12354.10}</span>
@@ -359,7 +359,9 @@
 
 <div class="viewcode-block" id="ModalProblem.evalFunctionsSens">
 <a class="viewcode-back" href="../../../pytacs/modal.html#tacs.problems.ModalProblem.evalFunctionsSens">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">evalFunctionsSens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">funcsSens</span><span class="p">,</span> <span class="n">evalFuncs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evalFunctionsSens</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">funcsSens</span><span class="p">,</span> <span class="n">evalFuncs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">includeDVSens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">includeXptSens</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is the main routine for returning useful (sensitivity)</span>
 <span class="sd">        information from problem. The derivatives of the functions</span>
@@ -373,11 +375,15 @@
 <span class="sd">            Dictionary into which the derivatives are saved.</span>
 <span class="sd">        evalFuncs : iterable object containing strings</span>
 <span class="sd">            The functions the user wants returned</span>
+<span class="sd">        includeDVSens : bool, optional</span>
+<span class="sd">            Flag to include design variable sensitivities in output. Default is True.</span>
+<span class="sd">        includeXptSens : bool, optional</span>
+<span class="sd">            Flag to include node location sensitivities in output. Default is True.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; funcsSens = {}</span>
-<span class="sd">        &gt;&gt;&gt; modalProblem.evalFunctionsSens(funcsSens, &#39;eigsm.0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; modalProblem.evalFunctionsSens(funcsSens, &quot;eigsm.0&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; funcsSens</span>
 <span class="sd">        &gt;&gt;&gt; # Result will look like (if ModalProblem has name of &#39;c1&#39;):</span>
 <span class="sd">        &gt;&gt;&gt; # {&#39;c1_eigsm.0&#39;:{&#39;struct&#39;:[1.234, ..., 7.89], &#39;Xpts&#39;:[3.14, ..., 1.59]}}</span>
@@ -396,20 +402,24 @@
                 <span class="k">if</span> <span class="n">func</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">functionList</span><span class="p">:</span>
                     <span class="n">evalFuncs</span><span class="p">[</span><span class="n">func</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">functionList</span><span class="p">[</span><span class="n">func</span><span class="p">]</span>
 
-        <span class="n">dvSens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">createDesignVec</span><span class="p">()</span>
-        <span class="n">xptSens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">createNodeVec</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">includeDVSens</span><span class="p">:</span>
+            <span class="n">dvSens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">createDesignVec</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">includeXptSens</span><span class="p">:</span>
+            <span class="n">xptSens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assembler</span><span class="o">.</span><span class="n">createNodeVec</span><span class="p">()</span>
 
         <span class="c1"># Loop through each requested eigenvalue</span>
         <span class="k">for</span> <span class="n">funcName</span> <span class="ow">in</span> <span class="n">evalFuncs</span><span class="p">:</span>
             <span class="n">mode_i</span> <span class="o">=</span> <span class="n">evalFuncs</span><span class="p">[</span><span class="n">funcName</span><span class="p">]</span>
             <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">funcName</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">funcsSens</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="c1"># Evaluate dv sens</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">freqSolver</span><span class="o">.</span><span class="n">evalEigenDVSens</span><span class="p">(</span><span class="n">mode_i</span><span class="p">,</span> <span class="n">dvSens</span><span class="p">)</span>
-            <span class="n">funcsSens</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">varName</span><span class="p">]</span> <span class="o">=</span> <span class="n">dvSens</span><span class="o">.</span><span class="n">getArray</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="c1"># Evaluate nodal sens</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">freqSolver</span><span class="o">.</span><span class="n">evalEigenXptSens</span><span class="p">(</span><span class="n">mode_i</span><span class="p">,</span> <span class="n">xptSens</span><span class="p">)</span>
-            <span class="n">funcsSens</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">coordName</span><span class="p">]</span> <span class="o">=</span> <span class="n">xptSens</span><span class="o">.</span><span class="n">getArray</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+            <span class="k">if</span> <span class="n">includeDVSens</span><span class="p">:</span>
+                <span class="c1"># Evaluate dv sens</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freqSolver</span><span class="o">.</span><span class="n">evalEigenDVSens</span><span class="p">(</span><span class="n">mode_i</span><span class="p">,</span> <span class="n">dvSens</span><span class="p">)</span>
+                <span class="n">funcsSens</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">varName</span><span class="p">]</span> <span class="o">=</span> <span class="n">dvSens</span><span class="o">.</span><span class="n">getArray</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">includeXptSens</span><span class="p">:</span>
+                <span class="c1"># Evaluate nodal sens</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freqSolver</span><span class="o">.</span><span class="n">evalEigenXptSens</span><span class="p">(</span><span class="n">mode_i</span><span class="p">,</span> <span class="n">xptSens</span><span class="p">)</span>
+                <span class="n">funcsSens</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">coordName</span><span class="p">]</span> <span class="o">=</span> <span class="n">xptSens</span><span class="o">.</span><span class="n">getArray</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
 
     <span class="c1">####### Modal solver methods ########</span>
@@ -498,7 +508,7 @@
 <span class="sd">            Place eigenvector for mode into this array (optional).</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        --------</span>
+<span class="sd">        -------</span>
 <span class="sd">        eigVal: float</span>
 <span class="sd">            Eigenvalue for mode corresponds to square of eigenfrequency (rad^2/s^2)</span>
 
